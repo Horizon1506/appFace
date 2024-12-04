@@ -10,20 +10,27 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 import cv2
 import os
-import firebase_admin
-from firebase_admin import credentials, db
+import pyrebase
 import face_recognition
 from PIL import Image as PILImage
 from kivy.graphics.texture import Texture
 import datetime
 from kivy.clock import Clock  # Thêm thư viện Clock để cập nhật liên tục
 
-# Kết nối Firebase
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://faceattendancerealtime-8dc3e-default-rtdb.firebaseio.com/"
-})
-ref = db.reference('Students')
+# Cấu hình Pyrebase
+config = {
+    "apiKey": "AIzaSyAZjiBKbVtJ1UuCM_XHlvhSBGkC2sUQcUY",
+    "authDomain": "faceattendancerealtime-8dc3e.firebaseapp.com",
+    "databaseURL": "https://faceattendancerealtime-8dc3e-default-rtdb.firebaseio.com",
+    "projectId": "faceattendancerealtime-8dc3e",
+    "storageBucket": "faceattendancerealtime-8dc3e.appspot.com",
+    "messagingSenderId": "747789857964",
+    "appId": "1:747789857964:web:e259d9be9678fc46079b09"
+}
+
+# Kết nối Firebase với Pyrebase
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
 
 # Khởi tạo bộ phát hiện khuôn mặt Haar Cascade
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -164,22 +171,5 @@ class FaceRecognitionApp(App):
                 "last_attendance_time": last_attendance_time
             }
 
-            ref.child(student_id).set(student_data)
-            self.show_popup("Thành công", f"Đã thêm sinh viên: {name} vào Firebase.")
-        else:
-            self.show_error("Lỗi", "Vui lòng nhập đầy đủ thông tin.")
-
-    def show_error(self, title, message):
-        popup = Popup(title=title, content=Label(text=message), size_hint=(None, None), size=(400, 200))
-        popup.open()
-
-    def show_popup(self, title, message):
-        popup = Popup(title=title, content=Label(text=message), size_hint=(None, None), size=(400, 200))
-        popup.open()
-
-    def on_stop(self):
-        if self.cap.isOpened():
-            self.cap.release()
-
-if __name__ == "__main__":
-    FaceRecognitionApp().run()
+            # Thêm dữ liệu vào Firebase Realtime Database
+            db.child
